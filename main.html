@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+	<head>
+		<meta charset="utf-8">
+		<title>Sample Viewer</title>
+		<link rel="stylesheet" href="./css/jquery-ui.css">
+		<script src="js/jquery.min.js"></script>
+		<script src="js/jquery-ui.min.js"></script>
+		<script src="js/gcode_3.js"></script>
+		<script type="text/javascript">
+		/*
+			- http://www5d.biglobe.ne.jp/~tomoya03/shtml/algorithm/Intersection.htm
+			- http://www.hiramine.com/programming/graphics/2d_segmentintersection.html
+		 */ 
+			var gcode, dim, mid_gcode, out_gcode;
+
+			var r_geometry;
+			var r_z = 5.0, r_h = 3.0, r_r = 5;
+			var res = 16;
+			// $(function() {
+			// 	// $("#slider_range").slider();
+			// });
+
+			$(document).ready(function() {
+				$("#gcode_change").click(function() {
+					var d = Date.now();
+
+					gcode = gArray($("#input_gcode").val());
+					dim = gDimention(gcode);
+
+					r_geometry = new Array();
+					var r_x = dim.w/2 + dim.x, r_y = dim.d/2 + dim.y;
+					var i, t;
+					var a, b;
+					a = new Point(r_x+r_r, r_y);
+					for(i=0; i<res; i++) {
+						b = new Point(r_x + r_r * Math.cos((i+1)*2*Math.PI/res), r_y + r_r * Math.sin((i+1)*2*Math.PI/res));
+						t = new Array();
+						t.push(a);
+						t.push(b);
+						r_geometry.push(t);
+						a = b;
+					}
+
+					r_dim = sDimention(r_geometry, r_z, r_h);
+					mid_gcode = gIntersect(gcode, r_dim, r_geometry);
+					out_gcode = convertGcode(mid_gcode);
+					var output = "";
+					for(i=0; i<out_gcode.length; i++) {
+						for(j=0; j<out_gcode[i].length; j++) {
+							output += out_gcode[i][j] + " ";
+						}
+						output += "\n";
+					}
+					$("#input_gcode").val(output);
+
+					$("div#output_gcode").text("");
+
+					d = Date.now() - d;
+					console.log("Taken time: " + d);
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div>
+<!-- 			<div id="slider_range"></div> -->
+			<form>
+				<textarea id="input_gcode" wrap="soft" cols="60" rows="30"></textarea>
+				<input type="button" value="CHANGE" id="gcode_change">
+			</form>
+			<div id="output_gcode">
+			</div>
+		</div>
+	</body>
+</html>
