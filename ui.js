@@ -9,27 +9,12 @@ function loadFile(path, callback /* function(contents) */) {
     .error(function() { error() });
 }
 
-function openDialog(event) {
-	if (event) {
-		event.preventDefault();
-	}
-  $('#openModal').modal('show');
-}
-
-/* viewer handler */
-function openTagDialog(event) {
-	event.preventDefault();
-	$('#tagModal').modal('show');
- // $('#tagModal').modal({ keyboard: true });   // initialized with no keyboard
-}
-
 /* lib handler */
 var scene = null;
 var object = null;
 var internalObject = null;
 
 function openGCodeFromPath(path) {
-  //$('#openModal').modal('hide');
   if (object) {
     scene.remove(object);
   }
@@ -42,7 +27,6 @@ function openGCodeFromPath(path) {
 }
 
 function openGCodeFromText(gcode) {
-  //$('#openModal').modal('hide');
   if (object) {
     scene.remove(object);
   }
@@ -50,27 +34,43 @@ function openGCodeFromText(gcode) {
   scene.add(object);
   localStorage.setItem('last-imported', gcode);
   localStorage.removeItem('last-loaded');
+	gcode_a = gcodeToArray(gcode);
+	bbox = gcodeBoundingBox(gcode_a);
+	param_slider['x'].slider('option','value',bbox.x+bbox.w/2);
+	param_slider['x'].slider('option','max',bbox.x+bbox.w);
+	param_slider['x'].slider('option','min',bbox.x);
+	changeParams(null, bbox.x + bbox.w/2, 'x');
+
+	param_slider['y'].slider('option','value',bbox.y+bbox.d/2);
+	param_slider['y'].slider('option','max',bbox.y+bbox.d);
+	param_slider['y'].slider('option','min',bbox.y);
+	changeParams(null, bbox.y + bbox.d/2, 'y');
+	
+	if (internalObject) {
+		createThreeInsertObject();
+	}
 }
 
-function makeTag() {
-//	if (localStorage.getItem('last-imported')) {
-//		var param_x = null, param_y = null, param_z = null, param_r = 5.0, param_h = 4.0, res = 16;
-//		tag = generateInsert(param_h, res, param_x, param_y, param_z, "TAG", param_r);
-//		// internalObject = shapeToThreeObject(tag);
-//		// scene.add(internalObject);
-//	} else {
-//		alert('drop your 3D data first!');
-//	}
+function createThreeInsertObject() {
+	if (internalObject) {
+		scene.remove(internalObject);
+	}
+	var param_x = Number($('#tag_x').slider('option', 'value'));
+	var param_y = Number($('#tag_y').slider('option', 'value'));
+	var param_z = Number($('#tag_z').slider('option', 'value'));
+	var param_r = Number($('#tag_radius').slider('option', 'value')) || 5.0;
+	var param_h = 4.0;
+	internalObject = generateThreeInsert(param_h, param_x, param_y, param_z, "TAG", param_r);
+	scene.add(internalObject);
 }
 
 function extractTag() {
-	var param_x = $('#insert_x_pos').val();
-	var param_y = $('#insert_y_pos').val();
-	var param_z = $('#insert_z_pos').val();
-	var param_r = 5.0, param_h = 4.0, res = 16;
+	var param_x = Number($('#tag_x').slider('option', 'value'));
+	var param_y = Number($('#tag_y').slider('option', 'value'));
+	var param_z = Number($('#tag_z').slider('option', 'value'));
+	var param_r = Number($('#tag_radius').slider('option', 'value')) || 5.0;
+	var param_h = 4.0, res = 16;
 	tag = generateInsert(param_h, res, param_x, param_y, param_z, "TAG", param_r);
-	// internalObject = shapeToThreeObject(tag);
-	// scene.add(internalObject);
 
 	var gcode_a = gcodeToArray(localStorage.getItem('last-imported'));
 	var mid_gcode = gcodeIntersect(gcode_a, tag.dimension, tag.shape);
@@ -84,13 +84,12 @@ function extractTag() {
 	}
 	if (object) {
 		scene.remove(object);
-		scene.remove(internalObject);
 	}
 	object = createObjectFromGCode(output);
 	scene.add(object);
 	localStorage.setItem('last-imported', output);
 	localStorage.removeItem('last-loaded');
-	tag = '';
+	// tag = '';
 }
 
 /* upload handler */
@@ -162,6 +161,16 @@ function updateProgress(event) {
 	}
 }
 
+/* view handler */
+var param_slider = {x:null, y:null, z:null, radius:null}
+
+function changeParams(event, value, param) {
+	$(".form-group label[for='tag_" + param + "']").text("Tag " + param + " : " + value);
+	if (internalObject) {
+		createThreeInsertObject();
+	}
+}
+
 $(function() {
   if (!Modernizr.webgl) {
     alert('Sorry, you need a WebGL capable browser to use this.\n\nGet the latest Chrome or FireFox.');
@@ -173,52 +182,83 @@ $(function() {
     return;
   }
 
-  // Show 'About' dialog for first time visits.
-//  if (!localStorage.getItem("not-first-visit")) {
-//    localStorage.setItem("not-first-visit", true);
-//    setTimeout(about, 500);
-//  }
-
-  // Drop files from desktop onto main page to import them.
-  $(window).on('dragleave', function(event) {
-		$('#upload_area').hide();
-  })
-  $(window).on('dragover', function(event) {
-    event.stopPropagation();
-    event.preventDefault();
-    event.originalEvent.dataTransfer.dropEffect = 'copy'
-		openDialog();
+	// Drop files from desktop onto main page to import them.
+	$(window).on('dragleave', function(event) {
+	 	$('#upload_area').hide();
+	});
+	$(window).on('dragover', function(event) {
+		event.stopPropagation();
+		event.preventDefault();
+		event.originalEvent.dataTransfer.dropEffect = 'copy'
+		$('#fileModal').modal('show');
 		$('#upload_area').show();
-  })
-  $('#upload_area').on('drop', function(event) {
-    event.stopPropagation();
-    event.preventDefault();
-	 $('#upload_progress').show();
-	 handleUpload(event);
+	});
+	$('#upload_area').on('drop', function(event) {
+		event.stopPropagation();
+		event.preventDefault();
+		$('#upload_progress').show();
 		$('#upload_area').hide();
-  });
+		handleUpload(event);
+	});
   
 	// assigning DOM to vars
 	progress = $('#percent');
 	stat = $('#file_status');
 
 	// binding actions
-	$('#open_dialog').on('click', openDialog);
-	$('#open_tag_dialog').on('click', openTagDialog);
+	// $('#open_dialog').on('click', openDialog);
+	// $('#open_tag_dialog').on('click', openTagDialog);
 	$('#cancel_upload').on('click', abortRead);
-	$('#insertRfid').on('click', makeTag);
+	$('#previewInsert').on('click', createThreeInsertObject);
 	$('#executeInsert').on('click', extractTag);
-	$('.modal').on('hidden', function() {
+	$('#fileModal').on('hidden', function() {
 		$('#upload_progress').hide();
 	});
 
-  scene = createScene($('#renderArea'));
-  var lastImported = localStorage.getItem('last-imported');
-  var lastLoaded = localStorage.getItem('last-loaded');
-  if (lastImported) {
-    openGCodeFromText(lastImported);
-  } else {
-    openGCodeFromPath(lastLoaded || 'examples/octocat.gcode');
-  }
+	param_slider.x = $('#tag_x').slider({
+		min: 0, value: 25, max: 50,
+		create: function(event, ui){ 
+			changeParams(event, 25, 'x'); 
+		},
+		slide: function(event, ui){ 
+			changeParams(event, ui.value, 'x'); 
+		}
+	});
+	param_slider.y = $('#tag_y').slider({
+		min: 0, value: 25, max: 50,
+		create: function(event, ui){ 
+			changeParams(event, 25, 'y'); 
+		},
+		slide: function(event, ui){ 
+			changeParams(event, ui.value, 'y'); 
+		}
+	});
+	param_slider.z = $('#tag_z').slider({
+		min: 0, value: 5.0, max: 10.0,
+		create: function(event, ui){
+			changeParams(event, 5.0, 'z'); 
+		},
+		slide: function(event, ui){ 
+			changeParams(event, ui.value, 'z'); 
+		}
+	});
+	param_slider.radius = $('#tag_radius').slider({
+		min: 0, value: 5.0, max: 10,
+		create: function(event, ui){ 
+			changeParams(event, 5.0, 'radius'); 
+		},
+		slide: function(event, ui){ 
+			changeParams(event, ui.value, 'radius'); 
+		}
+	});
+
+	scene = createScene($('#renderArea'));
+	var lastImported = localStorage.getItem('last-imported');
+	var lastLoaded = localStorage.getItem('last-loaded');
+	if (lastImported) {
+	  openGCodeFromText(lastImported);
+	} else {
+	  openGCodeFromPath(lastLoaded || 'examples/octocat.gcode');
+	}
 });
 

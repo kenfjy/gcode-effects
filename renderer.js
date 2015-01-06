@@ -30,11 +30,14 @@ function createScene(element) {
   //camera.rotationAutoUpdate = true;
   //camera.position.x = 0;
   //camera.position.y = 500;
-  camera.position.z = 300;
-  //camera.lookAt(scene.position);
+  camera.position.y = -600;
+  camera.position.z = 600;
+  camera.lookAt.x = 0;
+  camera.lookAt.y = 0;
+  camera.lookAt.z = 0;
   scene.add(camera);
-  controls = new THREE.TrackballControls(camera);
-  controls.noPan = true;
+  controls = new THREE.TrackballControls(camera, renderer.domElement);
+  controls.noPan = false;
   controls.dynamicDampingFactor = 0.15;
 
   // Action!

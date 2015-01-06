@@ -12,10 +12,12 @@
     <meta charset="utf-8">
     <title>GCode Effects</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="lib/jquery-ui.min.css">
     <link rel="stylesheet" href="lib/bootstrap.min.css">
     <!-- 3rd party libs -->
     <script src="lib/modernizr.custom.93389.js"></script>
     <script src="lib/jquery-1.7.1.min.js"></script>
+    <script src="lib/jquery-ui.min.js"></script>
     <script src="lib/bootstrap-modal.js"></script>
     <script src="lib/sugar-1.2.4.min.js"></script>
     <script src="lib/three.js"></script>
@@ -36,8 +38,8 @@
         <div class="container">
           <span class="brand" href="#">GCode Effects</span>
           <ul class="nav">
-            <li><a id="open_dialog" href="">Load Model</a></li>
-            <li><a id="open_tag_dialog" href="">Insert RFID Tag</a></li>
+            <li><a href="#fileModal" data-toggle="modal">Load Gcode</a></li>
+            <li><a href="#tagModal" data-toggle="modal">Insert RFID Tag</a></li>
           </ul>
           <ul class="nav pull-right">
             <li><a href="https://github.com/klee-arc/gcode-effects" target="_blank">Code on GitHub</a></li>
@@ -49,59 +51,70 @@
     <!-- WebGL rendering area -->
     <div id="renderArea"></div>
 
-    <div class="modal" id="openModal" style="display: none">
-      <div class="modal-header">
-        <a class="close" data-dismiss="modal">&times;</a>
-        <h3>Open GCode</h3>
-      </div>
-      <div class="modal-body">
-        <h4>Examples</h4>
-        <ul>
-          <li><a href="javascript:openGCodeFromPath('examples/15mm_cube.gcode')">15mm_cube.gcode</a></li>
-          <li><a href="javascript:openGCodeFromPath('examples/octocat.gcode')">octocat.gcode</a></li>
-          <li><a href="javascript:openGCodeFromPath('examples/part.gcode')">part.gcode</a></li>
-        </ul>
-        <p>To view your own model, drag a gcode file from your desktop and drop it inside this dialog.</p>
-		  <div id="upload_area" style="display:none;">
-		  		<p>DROP YOUR FILES HERE!</p>
-		  </div> 
-		  <div id="upload_progress" style="display:none;">
-				<p id="upload_status"></p>
-				<div id="progress_bar">
-					<div id="percent">0%</div>
-				</div>
-				<button id="cancel_upload" style="display:none;">Cancel upload</button>
-		  </div>
-      </div><!-- div.modal-body -->
-      <div class="modal-footer">
-        <a class="btn" data-dismiss="modal">Close</a>
-      </div>
-    </div>
+    <div class="modal hide fade" id="fileModal" role="dialog" aria-labelledby="fileModalLabel" aria-hidden="true">
+	 	<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h3 class="modal-title" id="fileModalLabel">Open Gcode To View</h3>
+				</div><!-- div.modal-header -->
+				<div class="modal-body">
+       			<ul>
+       			  <li><a href="javascript:openGCodeFromPath('examples/15mm_cube.gcode')">15mm_cube.gcode</a></li>
+       			  <li><a href="javascript:openGCodeFromPath('examples/octocat.gcode')">octocat.gcode</a></li>
+       			  <li><a href="javascript:openGCodeFromPath('examples/part.gcode')">part.gcode</a></li>
+       			</ul>
+       			<p>To view your own model, drag a gcode file from your desktop and drop it inside this dialog.</p>
+		 			<div id="upload_area" style="display:none;">
+		 					<p>DROP YOUR FILES HERE!</p>
+		 			</div> 
+		 			<div id="upload_progress" style="display:none;">
+		 			 	<p id="upload_status"></p>
+		 			 	<div id="progress_bar">
+		 			 		<div id="percent">0%</div>
+		 			 	</div>
+		 			 	<button id="cancel_upload" style="display:none;">Cancel upload</button>
+		 			</div>
+				</div><!-- div.modal-body -->
+			</div><!-- div.modal-content -->
+	 	</div><!--  div.modal-dialog -->
+	 </div><!-- div.modal -->
 
-    <!-- 'About' dialog'-->
-    <div class="modal hide fade" id="tagModal" role="dialog" aria-hidden="true">
-      <div class="modal-header">
-        <a class="close" data-dismiss="modal">&times;</a>
-        <h3>Insert RFID tag to your model</h3>
-      </div>
-      <div class="modal-body">
-        <p>Insert your RFID tags from here</p>
-		  <div id="svg_upload_area" style="display:none;"></div>
-			<form class="form-horizontal">
-				<label class="sr-only" for="insert_x_pos">X Position</label>
-			   <input type="text" class="form-control" id="insert_x_pos" placeholder="Enter position">
-				<label class="sr-only" for="insert_y_pos">Y Position</label>
-			   <input type="text" class="form-control" id="insert_y_pos" placeholder="Enter position">
-				<label class="sr-only" for="insert_z_pos">Z Position</label>
-			   <input type="text" class="form-control" id="insert_z_pos" placeholder="Enter position">
-			</form>
-		  <button id="insertRfid">Insert RFID Tag</button>
-		  <button id="executeInsert">Insert Tag</button>
-      </div>
-      <div class="modal-footer">
-        <a class="btn" data-dismiss="modal">Close</a>
-      </div>
-    </div>
+	 <div class="modal hide fade" id="tagModal" role="dialog" aria-labelledby="tagModalLabel" aria-hidden="true">
+	 	<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h3 class="modal-title" id="tagModalLabel">Insert RFID tag to your model</h3>
+				</div><!-- div.modal-header -->
+				<div class="modal-body">
+					<form>
+						<div class="form-group">
+							<label class="control-label" for="tag_x">X Position</label>
+							<div id="tag_x"></div>
+						</div><!-- div.form-group -->
+						<div class="form-group">
+							<label class="control-label" for="tag_y">Y Position</label>
+							<div id="tag_y"></div>
+						</div><!-- div.form-group -->
+						<div class="form-group">
+							<label class="control-label" for="tag_z">Z Position</label>
+							<div id="tag_z"></div>
+						</div><!-- div.form-group -->
+						<div class="form-group">
+							<label class="control-label" for="tag_radius">Radius</label>
+							<div id="tag_radius"></div>
+						</div><!-- div.form-group -->
+					</form>
+		 			<button id="previewInsert" class="btn btn-default">Show Preview</button>
+		 			<button id="executeInsert" class="btn btn-default">Change Gcode</button>
+				</div><!-- div.modal-body -->
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div><!-- div.modal-footer -->
+			</div><!-- div.modal-content -->
+	 	</div><!--  div.modal-dialog -->
+	 </div><!-- div.modal -->
 
   </body>
 </html>
