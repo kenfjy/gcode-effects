@@ -13,18 +13,20 @@ function openDialog(event) {
 	if (event) {
 		event.preventDefault();
 	}
-  $('#openModal').modal();
+  $('#openModal').modal('show');
 }
 
 /* viewer handler */
 function openTagDialog(event) {
 	event.preventDefault();
-  $('#tagModal').modal();
+	$('#tagModal').modal('show');
+ // $('#tagModal').modal({ keyboard: true });   // initialized with no keyboard
 }
 
 /* lib handler */
 var scene = null;
 var object = null;
+var internalObject = null;
 
 function openGCodeFromPath(path) {
   //$('#openModal').modal('hide');
@@ -48,6 +50,47 @@ function openGCodeFromText(gcode) {
   scene.add(object);
   localStorage.setItem('last-imported', gcode);
   localStorage.removeItem('last-loaded');
+}
+
+function makeTag() {
+//	if (localStorage.getItem('last-imported')) {
+//		var param_x = null, param_y = null, param_z = null, param_r = 5.0, param_h = 4.0, res = 16;
+//		tag = generateInsert(param_h, res, param_x, param_y, param_z, "TAG", param_r);
+//		// internalObject = shapeToThreeObject(tag);
+//		// scene.add(internalObject);
+//	} else {
+//		alert('drop your 3D data first!');
+//	}
+}
+
+function extractTag() {
+	var param_x = $('#insert_x_pos').val();
+	var param_y = $('#insert_y_pos').val();
+	var param_z = $('#insert_z_pos').val();
+	var param_r = 5.0, param_h = 4.0, res = 16;
+	tag = generateInsert(param_h, res, param_x, param_y, param_z, "TAG", param_r);
+	// internalObject = shapeToThreeObject(tag);
+	// scene.add(internalObject);
+
+	var gcode_a = gcodeToArray(localStorage.getItem('last-imported'));
+	var mid_gcode = gcodeIntersect(gcode_a, tag.dimension, tag.shape);
+	var out_gcode = convertGcode(mid_gcode);
+	var output = "";
+	for(i=0; i<out_gcode.length; i++) {
+		for(j=0; j<out_gcode[i].length; j++) {
+			output += out_gcode[i][j] + " ";
+		}
+		output += "\n";
+	}
+	if (object) {
+		scene.remove(object);
+		scene.remove(internalObject);
+	}
+	object = createObjectFromGCode(output);
+	scene.add(object);
+	localStorage.setItem('last-imported', output);
+	localStorage.removeItem('last-loaded');
+	tag = '';
 }
 
 /* upload handler */
@@ -163,8 +206,9 @@ $(function() {
 	$('#open_dialog').on('click', openDialog);
 	$('#open_tag_dialog').on('click', openTagDialog);
 	$('#cancel_upload').on('click', abortRead);
+	$('#insertRfid').on('click', makeTag);
+	$('#executeInsert').on('click', extractTag);
 	$('.modal').on('hidden', function() {
-		$('#progress_bar').removeClass('loading');
 		$('#upload_progress').hide();
 	});
 

@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
   <!--
-    GCode Viewer
+    GCode Effects
+	 https://github.com/klee-arc/gcode-effects
     https://github.com/joewalnes/gcode-viewer
     -Joe Walnes
   -->
   <head>
     <meta charset="utf-8">
-    <title>GCode Viewer</title>
+    <title>GCode Effects</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="lib/bootstrap.min.css">
     <!-- 3rd party libs -->
@@ -31,13 +32,13 @@
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-          <span class="brand" href="#">GCode Viewer</span>
+          <span class="brand" href="#">GCode Effects</span>
           <ul class="nav">
             <li><a id="open_dialog" href="">Load Model</a></li>
             <li><a id="open_tag_dialog" href="">Insert RFID Tag</a></li>
           </ul>
           <ul class="nav pull-right">
-            <li><a href="https://github.com/klee-arc/gcode-viewer" target="_blank">Code on GitHub</a></li>
+            <li><a href="https://github.com/klee-arc/gcode-effects" target="_blank">Code on GitHub</a></li>
           </ul>
         </div>
       </div>
@@ -76,13 +77,22 @@
     </div>
 
     <!-- 'About' dialog'-->
-    <div class="modal" id="tagModal" style="display: none">
+    <div class="modal hide fade" id="tagModal" role="dialog" aria-hidden="true">
       <div class="modal-header">
         <a class="close" data-dismiss="modal">&times;</a>
         <h3>Insert RFID tag to your model</h3>
       </div>
       <div class="modal-body">
         <p>Insert your RFID tags from here</p>
+		  <div id="svg_upload_area" style="display:none;"></div>
+			<form class="form-horizontal">
+				<label class="sr-only" for="insert_x_pos">X Position</label>
+			   <input type="text" class="form-control" id="insert_x_pos" placeholder="Enter position">
+				<label class="sr-only" for="insert_y_pos">Y Position</label>
+			   <input type="text" class="form-control" id="insert_y_pos" placeholder="Enter position">
+				<label class="sr-only" for="insert_z_pos">Z Position</label>
+			   <input type="text" class="form-control" id="insert_z_pos" placeholder="Enter position">
+			</form>
 		  <button id="insertRfid">Insert RFID Tag</button>
 		  <button id="executeInsert">Insert Tag</button>
       </div>

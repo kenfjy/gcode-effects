@@ -24,8 +24,8 @@
 				$("#gcode_change").click(function() {
 					var d = Date.now();
 
-					gcode = gArray($("#input_gcode").val());
-					dim = gDimention(gcode);
+					gcode = gcodeToArray($("#input_gcode").val());
+					dim = gDimension(gcode);
 
 					r_geometry = new Array();
 					var r_x = dim.w/2 + dim.x, r_y = dim.d/2 + dim.y;
@@ -41,9 +41,10 @@
 						a = b;
 					}
 
-					r_dim = sDimention(r_geometry, r_z, r_h);
+					r_dim = sDimension(r_geometry, r_z, r_h);
 					mid_gcode = gIntersect(gcode, r_dim, r_geometry);
 					out_gcode = convertGcode(mid_gcode);
+
 					var output = "";
 					for(i=0; i<out_gcode.length; i++) {
 						for(j=0; j<out_gcode[i].length; j++) {
@@ -51,6 +52,7 @@
 						}
 						output += "\n";
 					}
+
 					$("#input_gcode").val(output);
 
 					$("div#output_gcode").text("");
