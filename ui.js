@@ -58,8 +58,8 @@ function createThreeInsertObject() {
 	var param_x = Number($('#tag_x').slider('option', 'value'));
 	var param_y = Number($('#tag_y').slider('option', 'value'));
 	var param_z = Number($('#tag_z').slider('option', 'value'));
+	var param_h = Number($('#tag_height').slider('option', 'value')) || 4.0;
 	var param_r = Number($('#tag_radius').slider('option', 'value')) || 5.0;
-	var param_h = 4.0;
 	internalObject = generateThreeInsert(param_h, param_x, param_y, param_z, "TAG", param_r);
 	scene.add(internalObject);
 }
@@ -68,8 +68,9 @@ function extractTag() {
 	var param_x = Number($('#tag_x').slider('option', 'value'));
 	var param_y = Number($('#tag_y').slider('option', 'value'));
 	var param_z = Number($('#tag_z').slider('option', 'value'));
+	var param_h = Number($('#tag_height').slider('option', 'value')) || 4.0;
 	var param_r = Number($('#tag_radius').slider('option', 'value')) || 5.0;
-	var param_h = 4.0, res = 16;
+	var res = 16;
 	tag = generateInsert(param_h, res, param_x, param_y, param_z, "TAG", param_r);
 
 	var gcode_a = gcodeToArray(localStorage.getItem('last-imported'));
@@ -89,6 +90,7 @@ function extractTag() {
 	scene.add(object);
 	localStorage.setItem('last-imported', output);
 	localStorage.removeItem('last-loaded');
+	console.log("hello world");
 	// tag = '';
 }
 
@@ -162,7 +164,7 @@ function updateProgress(event) {
 }
 
 /* view handler */
-var param_slider = {x:null, y:null, z:null, radius:null}
+var param_slider = {x:null, y:null, z:null, height:null, radius:null}
 
 function changeParams(event, value, param) {
 	$(".form-group label[for='tag_" + param + "']").text("Tag " + param + " : " + value);
@@ -240,6 +242,15 @@ $(function() {
 		},
 		slide: function(event, ui){ 
 			changeParams(event, ui.value, 'z'); 
+		}
+	});
+	param_slider.height = $('#tag_height').slider({
+		min: 0, value: 4.0, max: 10,
+		create: function(event, ui){ 
+			changeParams(event, 4.0, 'height'); 
+		},
+		slide: function(event, ui){ 
+			changeParams(event, ui.value, 'height'); 
 		}
 	});
 	param_slider.radius = $('#tag_radius').slider({
