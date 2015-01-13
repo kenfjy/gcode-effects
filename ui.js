@@ -90,8 +90,7 @@ function extractTag() {
 	scene.add(object);
 	localStorage.setItem('last-imported', output);
 	localStorage.removeItem('last-loaded');
-	console.log("hello world");
-	// tag = '';
+	tag = '';
 }
 
 /* upload handler */
@@ -211,8 +210,13 @@ $(function() {
 	// $('#open_dialog').on('click', openDialog);
 	// $('#open_tag_dialog').on('click', openTagDialog);
 	$('#cancel_upload').on('click', abortRead);
-	$('#previewInsert').on('click', createThreeInsertObject);
-	$('#executeInsert').on('click', extractTag);
+	$('#download_data').on('click', function() {
+		this.href = '';
+		var gcode = localStorage.getItem('last-imported');
+		this.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(gcode);
+	});
+	$('#preview_insert').on('click', createThreeInsertObject);
+	$('#execute_insert').on('click', extractTag);
 	$('#fileModal').on('hidden', function() {
 		$('#upload_progress').hide();
 	});
