@@ -13,6 +13,7 @@ function loadFile(path, callback /* function(contents) */) {
 var scene = null;
 var object = null;
 var internalObject = null;
+var importedGcode = null;
 
 function openGCodeFromPath(path) {
   if (object) {
@@ -32,16 +33,17 @@ function openGCodeFromText(gcode) {
   }
   object = createObjectFromGCode(gcode);
   scene.add(object);
-  localStorage.setItem('last-imported', gcode);
+  importedGcode = gcode;
   localStorage.removeItem('last-loaded');
+
 	gcode_a = gcodeToArray(gcode);
 	bbox = gcodeBoundingBox(gcode_a);
-	param_slider['x'].slider('option','value',bbox.x+bbox.w/2);
+	param_slider['x'].slider('option','value',(bbox.x+bbox.w/2).toFixed(2));
 	param_slider['x'].slider('option','max',bbox.x+bbox.w);
 	param_slider['x'].slider('option','min',bbox.x);
 	changeParams(null, bbox.x + bbox.w/2, 'x');
 
-	param_slider['y'].slider('option','value',bbox.y+bbox.d/2);
+	param_slider['y'].slider('option','value',(bbox.y+bbox.d/2).toFixed(2));
 	param_slider['y'].slider('option','max',bbox.y+bbox.d);
 	param_slider['y'].slider('option','min',bbox.y);
 	changeParams(null, bbox.y + bbox.d/2, 'y');
@@ -73,7 +75,7 @@ function extractTag() {
 	var res = 16;
 	tag = generateInsert(param_h, res, param_x, param_y, param_z, "TAG", param_r);
 
-	var gcode_a = gcodeToArray(localStorage.getItem('last-imported'));
+	var gcode_a = gcodeToArray(importedGcode);
 	var mid_gcode = gcodeIntersect(gcode_a, tag.dimension, tag.shape);
 	var out_gcode = convertGcode(mid_gcode);
 	var output = "";
@@ -88,7 +90,7 @@ function extractTag() {
 	}
 	object = createObjectFromGCode(output);
 	scene.add(object);
-	localStorage.setItem('last-imported', output);
+	importedGcode = output
 	localStorage.removeItem('last-loaded');
 	tag = '';
 }
@@ -184,9 +186,6 @@ $(function() {
   }
 
 	// Drop files from desktop onto main page to import them.
-	$(window).on('dragleave', function(event) {
-	 	$('#upload_area').hide();
-	});
 	$(window).on('dragover', function(event) {
 		event.stopPropagation();
 		event.preventDefault();
@@ -201,6 +200,9 @@ $(function() {
 		$('#upload_area').hide();
 		handleUpload(event);
 	});
+	$('#fileModal').on('hide', function(event) {
+	 	$('#upload_area').hide();
+	});
   
 	// assigning DOM to vars
 	progress = $('#percent');
@@ -212,7 +214,7 @@ $(function() {
 	$('#cancel_upload').on('click', abortRead);
 	$('#download_data').on('click', function() {
 		this.href = '';
-		var gcode = localStorage.getItem('last-imported');
+		var gcode = importedGcode;
 		this.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(gcode);
 	});
 	$('#preview_insert').on('click', createThreeInsertObject);
@@ -268,12 +270,7 @@ $(function() {
 	});
 
 	scene = createScene($('#renderArea'));
-	var lastImported = localStorage.getItem('last-imported');
 	var lastLoaded = localStorage.getItem('last-loaded');
-	if (lastImported) {
-	  openGCodeFromText(lastImported);
-	} else {
-	  openGCodeFromPath(lastLoaded || 'examples/octocat.gcode');
-	}
+	openGCodeFromPath(lastLoaded || 'examples/octocat.gcode');
 });
 
