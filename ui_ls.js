@@ -32,7 +32,11 @@ function openGCodeFromText(gcode) {
   }
   object = createObjectFromGCode(gcode);
   scene.add(object);
-  localStorage.setItem('last-imported', gcode);
+  try {
+  	localStorage.setItem('last-imported', gcode);
+  } catch (e) {
+	  console.log(e);
+  }
   localStorage.removeItem('last-loaded');
 
 	gcode_a = gcodeToArray(gcode);
